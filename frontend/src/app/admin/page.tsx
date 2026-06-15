@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
+import { getSocket } from "@/lib/socket";
 import type { AdminUser, Ticket, TicketPriority, TicketStatus } from "@/lib/types";
 
 const STATUSES: TicketStatus[] = ["Open", "In Progress", "Resolved", "Closed"];
@@ -45,6 +46,44 @@ export default function AdminPage() {
     }, 300);
     return () => clearTimeout(handle);
   }, [fetchTickets]);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleCreated = (ticket: Ticket) => {
+      setTickets((prev) => [ticket, ...prev]);
+    };
+
+    const handleStatusUpdated = ({
+      ticketId,
+      status,
+    }: {
+      ticketId: string;
+      status: TicketStatus;
+    }) => {
+      setTickets((prev) => prev.map((t) => (t._id === ticketId ? { ...t, status } : t)));
+    };
+
+    const handleAssigned = ({
+      ticketId,
+      assignedTo,
+    }: {
+      ticketId: string;
+      assignedTo: AdminUser | null;
+    }) => {
+      setTickets((prev) => prev.map((t) => (t._id === ticketId ? { ...t, assignedTo } : t)));
+    };
+
+    socket.on("ticket:created", handleCreated);
+    socket.on("ticket:status_updated", handleStatusUpdated);
+    socket.on("ticket:assigned", handleAssigned);
+
+    return () => {
+      socket.off("ticket:created", handleCreated);
+      socket.off("ticket:status_updated", handleStatusUpdated);
+      socket.off("ticket:assigned", handleAssigned);
+    };
+  }, []);
 
   if (loading) {
     return <div className="flex flex-1 items-center justify-center">Loading...</div>;

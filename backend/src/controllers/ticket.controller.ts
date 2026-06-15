@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
+import { io } from "../lib/socket.js";
 import { AppError } from "../middleware/errorHandler.js";
 import { Message } from "../models/message.model.js";
 import { Ticket } from "../models/ticket.model.js";
@@ -51,6 +52,9 @@ export const createTicket = async (req: Request, res: Response): Promise<void> =
     assignedTo: null,
   });
 
+  await ticket.populate("createdBy", "name email");
+  io.to("admins").emit("ticket:created", ticket);
+
   res.status(201).json({ ticket });
 };
 
@@ -89,6 +93,8 @@ export const createMessage = async (req: Request, res: Response): Promise<void> 
 
   await message.populate("sender", "name email role");
 
+  io.to(`ticket:${ticketId}`).emit("message:new", message);
+
   res.status(201).json({ message });
 };
 
@@ -126,6 +132,11 @@ export const updateTicketStatus = async (req: Request, res: Response): Promise<v
   ticket.status = status;
   await ticket.save();
 
+  io.to("admins")
+    .to(`user:${ticket.createdBy}`)
+    .to(`ticket:${ticket._id}`)
+    .emit("ticket:status_updated", { ticketId: ticket._id.toString(), status: ticket.status });
+
   res.json({ ticket });
 };
 
@@ -146,6 +157,12 @@ export const assignTicket = async (req: Request, res: Response): Promise<void> =
 
   ticket.assignedTo = assignedTo ? new mongoose.Types.ObjectId(assignedTo) : null;
   await ticket.save();
+  await ticket.populate("assignedTo", "name email");
+
+  io.to("admins").emit("ticket:assigned", {
+    ticketId: ticket._id.toString(),
+    assignedTo: ticket.assignedTo,
+  });
 
   res.json({ ticket });
 };

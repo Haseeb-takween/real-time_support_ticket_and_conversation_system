@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import type { Message, Ticket } from "@/lib/types";
+import { getSocket } from "@/lib/socket";
+import type { Message, Ticket, TicketStatus } from "@/lib/types";
 
 export default function AdminTicketDetailPage() {
   const params = useParams<{ id: string }>();
@@ -34,6 +35,28 @@ export default function AdminTicketDetailPage() {
     );
   }, [params.id]);
 
+  useEffect(() => {
+    const socket = getSocket();
+    socket.emit("join_ticket", params.id);
+
+    const handleNewMessage = (message: Message) => {
+      setMessages((prev) => (prev.some((m) => m._id === message._id) ? prev : [...prev, message]));
+    };
+
+    const handleStatusUpdated = ({ status }: { ticketId: string; status: TicketStatus }) => {
+      setTicket((prev) => (prev ? { ...prev, status } : prev));
+    };
+
+    socket.on("message:new", handleNewMessage);
+    socket.on("ticket:status_updated", handleStatusUpdated);
+
+    return () => {
+      socket.emit("leave_ticket", params.id);
+      socket.off("message:new", handleNewMessage);
+      socket.off("ticket:status_updated", handleStatusUpdated);
+    };
+  }, [params.id]);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!draft.trim()) return;
@@ -44,7 +67,7 @@ export default function AdminTicketDetailPage() {
         method: "POST",
         body: JSON.stringify({ body: draft }),
       });
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => (prev.some((m) => m._id === message._id) ? prev : [...prev, message]));
       setDraft("");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Failed to send message");

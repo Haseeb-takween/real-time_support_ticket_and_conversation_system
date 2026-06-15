@@ -6,7 +6,8 @@ import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import type { Ticket } from "@/lib/types";
+import { getSocket } from "@/lib/socket";
+import type { Ticket, TicketStatus } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -18,6 +19,25 @@ export default function DashboardPage() {
     apiFetch<{ tickets: Ticket[] }>("/tickets")
       .then(({ tickets }) => setTickets(tickets))
       .finally(() => setTicketsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handleStatusUpdated = ({
+      ticketId,
+      status,
+    }: {
+      ticketId: string;
+      status: TicketStatus;
+    }) => {
+      setTickets((prev) => prev.map((t) => (t._id === ticketId ? { ...t, status } : t)));
+    };
+
+    socket.on("ticket:status_updated", handleStatusUpdated);
+    return () => {
+      socket.off("ticket:status_updated", handleStatusUpdated);
+    };
   }, []);
 
   if (loading) {

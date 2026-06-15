@@ -3,9 +3,9 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
-import morgan from "morgan";
 import { env } from "./config/env.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { requestLogger } from "./middleware/requestLogger.js";
 import routes from "./routes/index.js";
 
 export const createApp = () => {
@@ -24,9 +24,7 @@ export const createApp = () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(cookieParser());
 
-  if (env.NODE_ENV !== "test") {
-    app.use(morgan(env.NODE_ENV === "development" ? "dev" : "combined"));
-  }
+  app.use(requestLogger);
 
   app.use("/api", routes);
 

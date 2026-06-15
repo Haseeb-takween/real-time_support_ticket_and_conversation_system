@@ -12,6 +12,7 @@ export interface ITicket {
   status: TicketStatus;
   createdBy: mongoose.Types.ObjectId;
   assignedTo: mongoose.Types.ObjectId | null;
+  seenByAdmin: boolean;
 }
 
 const ticketSchema = new mongoose.Schema<ITicket>(
@@ -31,6 +32,7 @@ const ticketSchema = new mongoose.Schema<ITicket>(
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    seenByAdmin: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

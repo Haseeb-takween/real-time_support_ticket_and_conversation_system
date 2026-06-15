@@ -86,3 +86,8 @@ export const me = async (req: Request, res: Response): Promise<void> => {
   }
   res.json({ user: toPublicUser(user) });
 };
+
+export const listAdmins = async (_req: Request, res: Response): Promise<void> => {
+  const admins = await User.find({ role: "admin" }).select("name email");
+  res.json({ admins });
+};

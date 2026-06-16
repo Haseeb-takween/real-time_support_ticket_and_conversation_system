@@ -51,9 +51,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   const hashedPassword = await bcrypt.hash(password, 10);
   const user = await User.create({ name, email, password: hashedPassword, role: "user" });
 
-  const token = signToken({ id: user.id, email: user.email, role: user.role });
-  res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
-  res.status(201).json({ user: toPublicUser(user), token });
+  res.status(201).json({ user: toPublicUser(user) });
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {

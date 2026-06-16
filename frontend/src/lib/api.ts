@@ -11,7 +11,7 @@ export class ApiError extends Error {
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
   const base = typeof window === "undefined"
     ? (process.env.BACKEND_URL ?? "http://localhost:3000")
-    : (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000");
+    : (process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3000");
   const res = await fetch(`${base}/api${path}`, {
     ...options,
     credentials: "include",

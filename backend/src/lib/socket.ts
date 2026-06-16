@@ -15,12 +15,17 @@ export const initSocket = (server: http.Server): void => {
   });
 
   io.use((socket, next) => {
+    const authToken =
+      typeof socket.handshake.auth.token === "string" ? socket.handshake.auth.token : undefined;
+
     const cookieHeader = socket.handshake.headers.cookie ?? "";
-    const token = cookieHeader
+    const cookieToken = cookieHeader
       .split(";")
       .map((part) => part.trim())
       .find((part) => part.startsWith("token="))
       ?.slice("token=".length);
+
+    const token = authToken ?? cookieToken;
 
     if (!token) {
       next(new Error("Unauthorized"));

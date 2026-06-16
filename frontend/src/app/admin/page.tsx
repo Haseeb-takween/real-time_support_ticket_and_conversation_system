@@ -61,6 +61,8 @@ export default function AdminPage() {
   }, [fetchTickets]);
 
   useEffect(() => {
+    if (!user) return;
+
     const socket = getSocket();
 
     const handleCreated = (ticket: Ticket) => {
@@ -96,7 +98,7 @@ export default function AdminPage() {
       socket.off("ticket:status_updated", handleStatusUpdated);
       socket.off("ticket:assigned", handleAssigned);
     };
-  }, []);
+  }, [user]);
 
   if (loading || !user || user.role !== "admin") {
     return <div className="flex flex-1 items-center justify-center">Loading...</div>;
@@ -159,7 +161,7 @@ export default function AdminPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+              className="rounded border border-black/[.08] bg-white px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="">All statuses</option>
               {STATUSES.map((s) => (
@@ -172,7 +174,7 @@ export default function AdminPage() {
             <select
               value={priorityFilter}
               onChange={(e) => setPriorityFilter(e.target.value)}
-              className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+              className="rounded border border-black/[.08] bg-white px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="">All priorities</option>
               {PRIORITIES.map((p) => (
@@ -185,7 +187,7 @@ export default function AdminPage() {
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as "createdAt_desc" | "createdAt_asc")}
-              className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+              className="rounded border border-black/[.08] bg-white px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
             >
               <option value="createdAt_desc">Newest first</option>
               <option value="createdAt_asc">Oldest first</option>
@@ -252,7 +254,7 @@ export default function AdminPage() {
                             onChange={(e) =>
                               handleStatusChange(ticket._id, e.target.value as TicketStatus)
                             }
-                            className="rounded border border-black/[.08] bg-transparent px-2 py-1 text-xs text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+                            className="rounded border border-black/[.08] bg-white px-2 py-1 text-xs text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
                           >
                             {STATUSES.map((s) => (
                               <option key={s} value={s}>
@@ -268,7 +270,7 @@ export default function AdminPage() {
                           <select
                             value={assigned?._id ?? ""}
                             onChange={(e) => handleAssignChange(ticket._id, e.target.value)}
-                            className="rounded border border-black/[.08] bg-transparent px-2 py-1 text-xs text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+                            className="rounded border border-black/[.08] bg-white px-2 py-1 text-xs text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
                           >
                             <option value="">Unassigned</option>
                             {admins.map((admin) => (

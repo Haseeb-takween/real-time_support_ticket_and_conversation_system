@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { apiFetch, ApiError } from "@/lib/api";
+import { disconnectSocket, reconnectSocket, setSocketToken } from "@/lib/socket";
 
 export type UserRole = "user" | "admin";
 
@@ -27,32 +28,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    apiFetch<{ user: AuthUser }>("/auth/me")
-      .then(({ user }) => setUser(user))
-      .catch(() => setUser(null))
+    apiFetch<{ user: AuthUser; token: string }>("/auth/me")
+      .then(({ user, token }) => {
+        setSocketToken(token);
+        setUser(user);
+        reconnectSocket();
+      })
+      .catch(() => {
+        setSocketToken(null);
+        setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const { user } = await apiFetch<{ user: AuthUser }>("/auth/login", {
+    const { user, token } = await apiFetch<{ user: AuthUser; token: string }>("/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+    setSocketToken(token);
     setUser(user);
+    reconnectSocket();
     return user;
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const { user } = await apiFetch<{ user: AuthUser }>("/auth/register", {
+    const { user, token } = await apiFetch<{ user: AuthUser; token: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     });
+    setSocketToken(token);
     setUser(user);
+    reconnectSocket();
     return user;
   }, []);
 
   const logout = useCallback(async () => {
     await apiFetch("/auth/logout", { method: "POST" });
+    disconnectSocket();
     setUser(null);
   }, []);
 

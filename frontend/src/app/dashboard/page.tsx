@@ -35,6 +35,8 @@ export default function DashboardPage() {
   }, [user]);
 
   useEffect(() => {
+    if (!user) return;
+
     const socket = getSocket();
 
     const handleStatusUpdated = ({
@@ -51,7 +53,7 @@ export default function DashboardPage() {
     return () => {
       socket.off("ticket:status_updated", handleStatusUpdated);
     };
-  }, []);
+  }, [user]);
 
   if (loading || !user) {
     return <div className="flex flex-1 items-center justify-center">Loading...</div>;

@@ -53,7 +53,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 
   const token = signToken({ id: user.id, email: user.email, role: user.role });
   res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
-  res.status(201).json({ user: toPublicUser(user) });
+  res.status(201).json({ user: toPublicUser(user), token });
 };
 
 export const login = async (req: Request, res: Response): Promise<void> => {
@@ -71,7 +71,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   const token = signToken({ id: user.id, email: user.email, role: user.role });
   res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
-  res.json({ user: toPublicUser(user) });
+  res.json({ user: toPublicUser(user), token });
 };
 
 export const logout = (_req: Request, res: Response): void => {
@@ -84,7 +84,9 @@ export const me = async (req: Request, res: Response): Promise<void> => {
   if (!user) {
     throw new AppError(404, "User not found");
   }
-  res.json({ user: toPublicUser(user) });
+
+  const token = signToken({ id: user.id, email: user.email, role: user.role });
+  res.json({ user: toPublicUser(user), token });
 };
 
 export const listAdmins = async (_req: Request, res: Response): Promise<void> => {

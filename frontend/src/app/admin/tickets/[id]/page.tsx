@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/StatusBadge";
-import { ApiError } from "@/context/AuthContext";
+import { ApiError, useAuth } from "@/context/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { getSocket } from "@/lib/socket";
+import { getSocket, joinTicketRoom } from "@/lib/socket";
 import type { Message, Ticket, TicketStatus } from "@/lib/types";
 
 export default function AdminTicketDetailPage() {
   const params = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,8 +37,10 @@ export default function AdminTicketDetailPage() {
   }, [params.id]);
 
   useEffect(() => {
+    if (!user) return;
+
     const socket = getSocket();
-    socket.emit("join_ticket", params.id);
+    const leaveTicket = joinTicketRoom(socket, params.id);
 
     const handleNewMessage = (message: Message) => {
       setMessages((prev) => (prev.some((m) => m._id === message._id) ? prev : [...prev, message]));
@@ -51,11 +54,11 @@ export default function AdminTicketDetailPage() {
     socket.on("ticket:status_updated", handleStatusUpdated);
 
     return () => {
-      socket.emit("leave_ticket", params.id);
+      leaveTicket();
       socket.off("message:new", handleNewMessage);
       socket.off("ticket:status_updated", handleStatusUpdated);
     };
-  }, [params.id]);
+  }, [params.id, user]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();

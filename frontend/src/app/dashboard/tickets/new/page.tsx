@@ -81,7 +81,7 @@ export default function NewTicketPage() {
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value as TicketCategory)}
-              className="w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+              className="w-full rounded border border-black/[.08] bg-white px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
             >
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
@@ -98,7 +98,7 @@ export default function NewTicketPage() {
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TicketPriority)}
-              className="w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+              className="w-full rounded border border-black/[.08] bg-white px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:bg-zinc-950 dark:text-zinc-50"
             >
               {PRIORITIES.map((p) => (
                 <option key={p} value={p}>

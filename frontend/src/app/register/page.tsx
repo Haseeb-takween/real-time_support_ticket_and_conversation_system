@@ -1,25 +1,31 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, ApiError } from "@/context/AuthContext";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const { register } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     try {
       await register(name, email, password);
-      window.location.assign("/dashboard");
-      return;
+      router.push("/login");
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
       setSubmitting(false);
@@ -73,6 +79,18 @@ export default function RegisterPage() {
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="mb-4 w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
+        />
+
+        <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          Confirm Password
+        </label>
+        <input
+          type="password"
+          required
+          minLength={8}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
           className="mb-6 w-full rounded border border-black/[.08] bg-transparent px-3 py-2 text-sm text-black outline-none focus:border-zinc-400 dark:border-white/[.145] dark:text-zinc-50"
         />
 

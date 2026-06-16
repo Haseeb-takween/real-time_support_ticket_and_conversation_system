@@ -17,7 +17,7 @@ interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<AuthUser>;
-  register: (name: string, email: string, password: string) => Promise<AuthUser>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -53,14 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const register = useCallback(async (name: string, email: string, password: string) => {
-    const { user, token } = await apiFetch<{ user: AuthUser; token: string }>("/auth/register", {
+    await apiFetch<{ user: AuthUser; token: string }>("/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
     });
-    setSocketToken(token);
-    setUser(user);
-    reconnectSocket();
-    return user;
   }, []);
 
   const logout = useCallback(async () => {

@@ -16,10 +16,23 @@ export default function DashboardPage() {
   const [ticketsLoading, setTicketsLoading] = useState(true);
 
   useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!loading && user?.role === "admin") {
+      router.replace("/admin");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!user) return;
     apiFetch<{ tickets: Ticket[] }>("/tickets")
       .then(({ tickets }) => setTickets(tickets))
       .finally(() => setTicketsLoading(false));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const socket = getSocket();
@@ -40,7 +53,7 @@ export default function DashboardPage() {
     };
   }, []);
 
-  if (loading) {
+  if (loading || !user) {
     return <div className="flex flex-1 items-center justify-center">Loading...</div>;
   }
 

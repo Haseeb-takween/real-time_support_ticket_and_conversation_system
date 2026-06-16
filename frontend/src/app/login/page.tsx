@@ -17,10 +17,10 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const user = await login(email, password);
-      window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
+      window.location.assign(user.role === "admin" ? "/admin" : "/dashboard");
+      return;
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
-    } finally {
       setSubmitting(false);
     }
   };

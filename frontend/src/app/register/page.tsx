@@ -18,10 +18,10 @@ export default function RegisterPage() {
     setSubmitting(true);
     try {
       await register(name, email, password);
-      window.location.href = "/dashboard";
+      window.location.assign("/dashboard");
+      return;
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
-    } finally {
       setSubmitting(false);
     }
   };

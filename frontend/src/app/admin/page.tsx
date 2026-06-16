@@ -36,8 +36,21 @@ export default function AdminPage() {
   }, [statusFilter, priorityFilter, sort, search]);
 
   useEffect(() => {
+    if (!loading && !user) {
+      router.replace("/login");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!loading && user && user.role !== "admin") {
+      router.replace("/dashboard");
+    }
+  }, [loading, user, router]);
+
+  useEffect(() => {
+    if (!user || user.role !== "admin") return;
     apiFetch<{ admins: AdminUser[] }>("/auth/admins").then(({ admins }) => setAdmins(admins));
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const handle = setTimeout(() => {
@@ -85,7 +98,7 @@ export default function AdminPage() {
     };
   }, []);
 
-  if (loading) {
+  if (loading || !user || user.role !== "admin") {
     return <div className="flex flex-1 items-center justify-center">Loading...</div>;
   }
 

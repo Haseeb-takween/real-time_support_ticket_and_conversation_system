@@ -24,9 +24,15 @@ export async function proxyToBackend(path: string, req: Request): Promise<Respon
     resHeaders.set("content-type", resContentType);
   }
 
-  const setCookie = backendRes.headers.get("set-cookie");
-  if (setCookie) {
-    resHeaders.set("set-cookie", setCookie);
+  const setCookies =
+    typeof backendRes.headers.getSetCookie === "function"
+      ? backendRes.headers.getSetCookie()
+      : backendRes.headers.get("set-cookie")
+        ? [backendRes.headers.get("set-cookie")!]
+        : [];
+
+  for (const cookie of setCookies) {
+    resHeaders.append("set-cookie", cookie);
   }
 
   return new Response(backendRes.body, {

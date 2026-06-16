@@ -25,15 +25,20 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
 
   const fetchTickets = useCallback(async () => {
+    if (!user || user.role !== "admin") return;
     const params = new URLSearchParams();
     if (statusFilter) params.set("status", statusFilter);
     if (priorityFilter) params.set("priority", priorityFilter);
     if (search) params.set("search", search);
     params.set("sort", sort);
 
-    const { tickets } = await apiFetch<{ tickets: Ticket[] }>(`/tickets/admin?${params}`);
-    setTickets(tickets);
-  }, [statusFilter, priorityFilter, sort, search]);
+    try {
+      const { tickets } = await apiFetch<{ tickets: Ticket[] }>(`/tickets/admin?${params}`);
+      setTickets(tickets);
+    } catch (e) {
+      console.error("fetchTickets:", e);
+    }
+  }, [statusFilter, priorityFilter, sort, search, user]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -65,8 +70,8 @@ export default function AdminPage() {
 
     const socket = getSocket();
 
-    const handleCreated = (ticket: Ticket) => {
-      setTickets((prev) => [ticket, ...prev]);
+    const handleCreated = () => {
+      fetchTickets();
     };
 
     const handleStatusUpdated = ({
@@ -98,7 +103,7 @@ export default function AdminPage() {
       socket.off("ticket:status_updated", handleStatusUpdated);
       socket.off("ticket:assigned", handleAssigned);
     };
-  }, [user]);
+  }, [user, fetchTickets]);
 
   if (loading || !user || user.role !== "admin") {
     return <div className="flex flex-1 items-center justify-center">Loading...</div>;

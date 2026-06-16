@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Support System Frontend
 
-## Getting Started
+Next.js web app for the real-time support ticket and conversation system. Users submit tickets and chat with support; admins manage and respond to tickets in real time.
 
-First, run the development server:
+## Features
+
+- User registration and login
+- User dashboard: create tickets, view status, live chat on tickets
+- Admin dashboard: view all tickets, filter/search, assign agents, update status
+- Real-time updates via Socket.IO (new tickets, messages, status changes)
+- Role-based route protection (users and admins are redirected to the correct area)
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (App Router)
+- **UI:** React 19, Tailwind CSS 4
+- **Real-time:** Socket.IO client
+- **Auth:** JWT stored in HTTP-only cookies, verified in `proxy.ts`
+
+## Prerequisites
+
+- Node.js 20 or later
+- pnpm (recommended) or npm
+- Backend API running (see `../backend/README.md`)
+
+## Setup
+
+1. Install dependencies:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Copy the environment file and configure it:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Required variables:
 
-## Learn More
+| Variable | Description |
+|----------|-------------|
+| `BACKEND_URL` | Backend URL for server-side API proxying (e.g. `http://localhost:3000`) |
+| `NEXT_PUBLIC_BACKEND_URL` | Backend URL for client-side Socket.IO connections |
+| `JWT_SECRET` | Must match the backend's `JWT_SECRET` — used by `proxy.ts` for route protection |
 
-To learn more about Next.js, take a look at the following resources:
+3. Start the backend first, then run the frontend:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app runs at `http://localhost:5173`.
 
-## Deploy on Vercel
+## Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start dev server on port 5173 |
+| `pnpm build` | Create production build |
+| `pnpm start` | Serve production build |
+| `pnpm lint` | Run ESLint |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture
+
+### API proxy
+
+Browser requests go to `/api/*` on the Next.js server. The catch-all route at `src/app/api/[...path]/route.ts` forwards them to the backend, preserving cookies for authentication.
+
+Server Components use `apiFetch` from `src/lib/api.ts`, which calls the backend directly via `BACKEND_URL`.
+
+### Route protection
+
+`src/proxy.ts` verifies the JWT cookie and enforces role-based access:
+
+- `/dashboard/*` — users only (admins are redirected to `/admin`)
+- `/admin/*` — admins only (users are redirected to `/dashboard`)
+
+### Real-time
+
+`src/lib/socket.ts` connects to the backend via Socket.IO using `NEXT_PUBLIC_BACKEND_URL`. Ticket pages join ticket rooms to receive live messages and status updates.
+
+## Pages
+
+| Route | Access | Description |
+|-------|--------|-------------|
+| `/login` | Public | Sign in |
+| `/register` | Public | Create an account |
+| `/dashboard` | User | List own tickets |
+| `/dashboard/tickets/new` | User | Create a ticket |
+| `/dashboard/tickets/[id]` | User | Ticket detail and chat |
+| `/admin` | Admin | All tickets with filters |
+| `/admin/tickets/[id]` | Admin | Manage ticket and chat |
+
+## Project Structure
+
+```
+src/
+├── app/
+│   ├── api/[...path]/   # Backend API proxy
+│   ├── admin/           # Admin pages
+│   ├── dashboard/       # User pages
+│   ├── login/
+│   └── register/
+├── components/          # Shared UI components
+├── context/             # Auth context provider
+├── lib/                 # API client, Socket.IO, types
+└── proxy.ts             # JWT route protection
+```
+
+## Demo Accounts
+
+After seeding the backend (`pnpm seed` in `../backend`), use these accounts:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin1@demo.com` | `demo1234` |
+| User | `user1@demo.com` | `demo1234` |
+
+## Backend
+
+The API server lives in `../backend` and runs on port `3000` by default. Both projects must share the same `JWT_SECRET`.

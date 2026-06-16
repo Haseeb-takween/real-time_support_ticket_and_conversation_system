@@ -73,7 +73,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const logout = (_req: Request, res: Response): void => {
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, path: "/" });
+  res.clearCookie(COOKIE_NAME, {
+    httpOnly: true,
+    sameSite: (env.NODE_ENV === "production" ? "none" : "lax") as "none" | "lax",
+    secure: env.NODE_ENV === "production",
+    path: "/",
+  });
   res.status(204).send();
 };
 

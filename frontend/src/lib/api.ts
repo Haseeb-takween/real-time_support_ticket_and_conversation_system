@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
-
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -11,7 +9,10 @@ export class ApiError extends Error {
 }
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${API_URL}/api${path}`, {
+  const base = typeof window === "undefined"
+    ? (process.env.BACKEND_URL ?? "http://localhost:3000")
+    : "";
+  const res = await fetch(`${base}/api${path}`, {
     ...options,
     credentials: "include",
     headers: {

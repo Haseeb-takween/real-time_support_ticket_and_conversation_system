@@ -75,7 +75,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const logout = (_req: Request, res: Response): void => {
-  res.clearCookie(COOKIE_NAME, COOKIE_OPTIONS);
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, path: "/" });
   res.status(204).send();
 };
 

@@ -1,12 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuth, ApiError } from "@/context/AuthContext";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -19,7 +17,7 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       const user = await login(email, password);
-      router.push(user.role === "admin" ? "/admin" : "/dashboard");
+      window.location.href = user.role === "admin" ? "/admin" : "/dashboard";
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong");
     } finally {
